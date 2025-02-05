@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Eisenhower Matrix Organizer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    /* CSS Variables for colors and sizing */
+    :root {
+      --primary-bg: #f9f9f9;
+      --secondary-bg: #ffffff;
+      --accent-color: #4a90e2;
+      --text-color: #333;
+      --border-color: #ddd;
+      --shadow-color: rgba(0, 0, 0, 0.1);
+      --transition-speed: 0.3s;
+    }
+
+    /* Global Styles */
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: var(--primary-bg);
+      margin: 0;
+      padding: 20px;
+      color: var(--text-color);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 10px;
+      color: var(--accent-color);
+    }
+
+    /* Input Area Styles */
+    #input-area {
+      max-width: 600px;
+      margin: 0 auto 30px auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    #input-area input,
+    #input-area select,
+    #input-area button {
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      outline: none;
+      transition: border var(--transition-speed);
+    }
+
+    #input-area input:focus,
+    #input-area select:focus,
+    #input-area button:focus {
+      border-color: var(--accent-color);
+    }
+
+    #input-area button {
+      background: var(--accent-color);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      transition: background var(--transition-speed);
+    }
+
+    #input-area button:hover {
+      background: #357ABD;
+    }
+
+    /* Matrix Container Styles */
+    #matrix {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .quadrant {
+      background: var(--secondary-bg);
+      border: 2px dashed var(--border-color);
+      padding: 15px;
+      border-radius: 8px;
+      min-height: 250px;
+      box-shadow: 0 2px 5px var(--shadow-color);
+      transition: background var(--transition-speed), border-color var(--transition-speed);
+    }
+
+    .quadrant:hover {
+      background: #fafafa;
+      border-color: var(--accent-color);
+    }
+
+    .quadrant h3 {
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-weight: 500;
+      color: var(--accent-color);
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 5px;
+    }
+
+    /* Task Styles */
+    .task {
+      background: var(--accent-color);
+      color: #fff;
+      margin: 8px 0;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: grab;
+      box-shadow: 0 2px 4px var(--shadow-color);
+      transition: transform var(--transition-speed), opacity var(--transition-speed);
+    }
+
+    .task:active {
+      transform: scale(0.98);
+    }
+
+    .task.dragging {
+      opacity: 0.5;
+    }
+  </style>
+</head>
+<body>
+  <h2>Eisenhower Matrix Organizer</h2>
+
+  <!-- Input area for adding new tasks -->
+  <div id="input-area">
+    <input type="text" id="task-input" placeholder="Enter new task" />
+    <select id="quadrant-select">
+      <option value="q1">Urgent & Important</option>
+      <option value="q2">Important, Not Urgent</option>
+      <option value="q3">Urgent, Not Important</option>
+      <option value="q4">Neither Urgent nor Important</option>
+    </select>
+    <button id="add-task-btn">Add Task</button>
+  </div>
+
+  <!-- The Eisenhower Matrix -->
+  <div id="matrix">
+    <div class="quadrant" id="q1" ondragover="allowDrop(event)" ondrop="drop(event)">
+      <h3>Urgent & Important</h3>
+    </div>
+    <div class="quadrant" id="q2" ondragover="allowDrop(event)" ondrop="drop(event)">
+      <h3>Important, Not Urgent</h3>
+    </div>
+    <div class="quadrant" id="q3" ondragover="allowDrop(event)" ondrop="drop(event)">
+      <h3>Urgent, Not Important</h3>
+    </div>
+    <div class="quadrant" id="q4" ondragover="allowDrop(event)" ondrop="drop(event)">
+      <h3>Neither Urgent nor Important</h3>
+    </div>
+  </div>
+
+  <script>
+    // Add event listener for the "Add Task" button
+    document.getElementById('add-task-btn').addEventListener('click', function() {
+      const taskInput = document.getElementById('task-input');
+      const quadrantSelect = document.getElementById('quadrant-select');
+      const taskText = taskInput.value.trim();
+
+      if (taskText !== "") {
+        // Create a new task div
+        const taskDiv = document.createElement('div');
+        taskDiv.className = 'task';
+        taskDiv.textContent = taskText;
+        taskDiv.draggable = true;
+
+        // Attach dragstart event to enable dragging
+        taskDiv.addEventListener('dragstart', drag);
+
+        // Append the new task to the selected quadrant
+        const quadrantId = quadrantSelect.value;
+        document.getElementById(quadrantId).appendChild(taskDiv);
+
+        // Clear the input field after adding
+        taskInput.value = "";
+      }
+    });
+
+    // Drag event handler
+    function drag(event) {
+      // Ensure the task element has an id (generate one if missing)
+      if (!event.target.id) {
+        event.target.id = "task-" + Date.now();
+      }
+      event.dataTransfer.setData("text/plain", event.target.id);
+      event.target.classList.add("dragging");
+    }
+
+    // Allow drop by preventing the default behavior
+    function allowDrop(event) {
+      event.preventDefault();
+    }
+
+    // Drop event handler
+    function drop(event) {
+      event.preventDefault();
+      // Remove the dragging style from any element that has it
+      const draggingElements = document.querySelectorAll(".dragging");
+      draggingElements.forEach(el => el.classList.remove("dragging"));
+
+      // Retrieve the id of the dragged element and append it to the drop target
+      const data = event.dataTransfer.getData("text/plain");
+      const draggedElement = document.getElementById(data);
+      if (draggedElement) {
+        event.currentTarget.appendChild(draggedElement);
+      }
+    }
+  </script>
+</body>
+</html>
